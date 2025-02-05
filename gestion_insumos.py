@@ -12,15 +12,30 @@ def cargar_datos():
 def guardar_datos(df):
     df.to_excel(ARCHIVO, index=False)
 
+def validar_numero(mensaje, tipo=float, positivo=False):
+    while True:
+        try:
+            valor = tipo(input(mensaje))
+            if positivo and valor <= 0:
+                print("Error: Debe ser mayor a cero")
+                continue
+            if tipo == int and valor < 0:
+                print("Error: No puede ser negativo")
+                continue
+            return valor
+        except ValueError:
+            print(f"Error: Ingrese un valor numérico válido ({tipo.__name__})")
+
 def agregar(df):
     datos = [
         input("Insumo: ").capitalize(),
-        input("Categoría: ").capitalize(),
-        int(input("Cantidad: ")),
+        input("Categoría: ").capitalize(), 
+        validar_numero("Cantidad: ", int, positivo=True),
         input("Unidad: ").lower(),
-        int(input("Stock Mínimo: ")),
-        float(input("Costo por unidad: "))
+        validar_numero("Stock Mínimo: ", int, positivo=True),
+        validar_numero("Costo por unidad: ", float, positivo=True)
     ]
+
     nuevo_registro = pd.DataFrame([datos], columns=COLUMNAS)
     return pd.concat([df, nuevo_registro], ignore_index=True)
 
@@ -35,20 +50,30 @@ def actualizar(df):
         indice = df[df["Insumo"] == insumo].index[0]
 
         cantidad_actual = df.at[indice, 'Cantidad']
+
+        while True:
         
-        nueva_cantidad = input(f"Cantidad ({cantidad_actual}): ") 
-        
-        if nueva_cantidad[0] == "+":
-            incremento = int(nueva_cantidad)
-            nueva_cantidad = cantidad_actual + incremento
-        elif nueva_cantidad[0] =="-":
-            decremento = int(nueva_cantidad)
-            nueva_cantidad = cantidad_actual + decremento
-        else:
-            nueva_cantidad = int(nueva_cantidad)
-        
+            nueva_cantidad = input(f"Cantidad ({cantidad_actual}): ") 
+            
+            if not nueva_cantidad:
+                print('No se realizaron cambios')
+                return df
+            try:
+
+                if nueva_cantidad[0] == "+":
+                    incremento = int(nueva_cantidad)
+                    nueva_cantidad = cantidad_actual + incremento
+                elif nueva_cantidad[0] =="-":
+                    decremento = int(nueva_cantidad)
+                    nueva_cantidad = cantidad_actual + decremento
+                else:
+                    nueva_cantidad = int(nueva_cantidad)
+            except ValueError:
+                print("Error: Formato inválido. Use números o +/- valores")
+            
         df.at[indice, 'Cantidad'] = nueva_cantidad
         print(f"Cantidad actualizada correctamente. Nueva cantidad: {nueva_cantidad}")
+
     except Exception as e:
         print(f"Error en actualización: {e}")
     return df
@@ -56,11 +81,16 @@ def actualizar(df):
 
 def eliminar(df):
     print(df.to_string())
-    try:
-        indice = int(input("\nÍndice a eliminar: "))
-        return df.drop(index=indice).reset_index(drop=True)
-    except:
+    insumo = input("\nNombre del insumo a eliminar: ").capitalize()
+    if insumo not in df["Insumo"].values:
+        print("El insumo no existe")
         return df
+    
+    confirmar = input(f"¿Eliminar TODOS los registros de '{insumo}'? (s/n): ").lower()
+    if confirmar == "s":
+        df = df[df["Insumo"] != insumo].reset_index(drop=True)
+        print("Insumo eliminado")
+    return df
 
 def verificar_alertas(df):
     for _, fila in df.iterrows():
