@@ -86,9 +86,9 @@ def abrir_gestion_insumos():
         for _, fila in df.iterrows():
             if fila["Cantidad"] <= fila["Stock Mínimo"]:
                 messagebox.showwarning("ALERTA", 
-                    f"{fila['Insumo']} bajo stock ({fila['Cantidad']}/{fila['Stock Mínimo']})")
+                    f"{fila['Insumo']} bajo stock ({fila['Cantidad']}) {fila['Unidad']}")
         
-        tk.Label(ventana_insumos, text="Inventario de Insumos", font=("Arial", 18, "bold"), bg="#F0F5E1", fg="#2C5F2D").pack(pady=10)
+    tk.Label(ventana_insumos, text="Inventario de Insumos", font=("Arial", 18, "bold"), bg="#F0F5E1", fg="#2C5F2D").pack(pady=10)
     
     header_frame = tk.Frame(ventana_insumos, bg="#F0F5E1")
     header_frame.pack()
